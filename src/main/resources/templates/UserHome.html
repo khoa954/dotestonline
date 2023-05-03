@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>User</title>
+</head>
+<body>
+    <form method="post" th:action="@{/user/quiz/generate}">
+        <label>Duration:</label>
+        <input type="hidden" name="userName" th:value="${#authentication.getPrincipal().getUsername()}">
+        <select name="duration">
+            <option value="long">Long</option>
+            <option value="medium">Medium</option>
+            <option value="short">Short</option>
+        </select>
+        <label>Subject:</label>
+        <select name="subject">
+            <option value="math">Math</option>
+            <option value="english">English</option>
+            <option value="random">Random</option>
+        </select>
+        <input type="submit" value="Start your Quiz">
+    </form>
+</body>
+</html>

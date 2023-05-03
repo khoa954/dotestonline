@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Quiz Test</title>
+    <style>
+        #quiz-container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow: auto;
+            height: 300px;
+        }
+
+        .question {
+            margin-bottom: 10px;
+        }
+
+        .answer {
+            margin-left: 20px;
+        }
+    </style>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+</head>
+<body>
+<div id="quiz-container">
+    <form id="quizForm">
+        <div class="quiz-header">
+            <h3
+                th:text="'Hello, '+${#authentication.getPrincipal().getUsername()}"></h3>
+            <h4 th:text="'Quiz code:'+${newQuiz.name}"></h4>
+            <input id="quizUsername" type="hidden" th:value="${#authentication.getPrincipal().getUsername()}">
+            <input id="quizId" type="hidden" th:value="${newQuiz.getId()}">
+
+        </div>
+        <th:block th:each="i:${listQuestion}">
+            <div class="question">
+                <input class="questionId" type="hidden" th:value="${i.getId()}">
+                <h3 th:text="${i.getQuestionText()}"></h3>
+                <select class="answer">
+                    <th:block th:each="a:${i.getAnswers()}">
+                        <option th:text="${a.getAnswerContent()}" th:value="${a.getAnswerContent()}"></option>
+                    </th:block>
+                </select>
+            </div>
+        </th:block>
+        <button type="submit">Finish</button>
+    </form>
+</div>
+</body>
+<script>
+    const form = document.getElementById("quizForm");
+    const userName = document.getElementById("quizUsername").value;
+    const quizId = document.getElementById("quizId").value;
+    const questionIdList = document.querySelectorAll('.questionId');
+    const questionList = [];
+    const answerList = document.querySelectorAll('.answer');
+    const answerFinalList = [];
+
+    questionIdList.forEach(function (input) {
+        questionList.push(input.value);
+    })
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        answerList.forEach(select => {
+            const selectedOption = select.options;
+            for (let i=0;i<selectedOption.length;i++){
+                if(selectedOption[i].selected){
+                    answerFinalList.push(selectedOption[i].value);
+                }
+            }
+        });
+        sendData(userName,quizId, questionList, answerFinalList);
+    });
+
+    function sendData(userName,quizId, questionArray, answerArray) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/user/examine');
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onload = function () {
+            if ( xhr.status === 200) {
+                Swal.fire({
+                    position: 'top-end',
+                    icon: 'success',
+                    title: xhr.responseText,
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            }else {
+                Swal.fire({
+                    position: 'top-end',
+                    icon: 'error',
+                    title: xhr.responseText,
+                    showConfirmButton: false,
+                    timer: 1500
+                })
+            }
+        };
+        const requestData = {
+            userName:userName ,
+            quizId:quizId,
+            questionArray: questionArray,
+            answerArray: answerArray
+        };
+        xhr.send(JSON.stringify(requestData));
+    }
+</script>
+</html>

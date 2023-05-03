@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>AdminHome</title>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+</head>
+<body>
+<h2>Admin</h2>
+
+<form id="upload-form" method="post" enctype="multipart/form-data">
+    <input type="file" id="file" name="file"/>
+    <input th:type="submit" id="submit-button" value="Import"/>
+</form>
+<button id="link-download-template">Sample Template</button>
+</body>
+
+<script>
+    const form = document.getElementById('upload-form');
+    const fileInput = document.getElementById('file');
+    const submitButton = document.getElementById('submit-button');
+    const template = document.getElementById("link-download-template");
+    template.addEventListener('click',function (){
+       var xhr=new XMLHttpRequest();
+       xhr.open("GET","/admin/download/template",true);
+       xhr.responseType="blob";
+       xhr.onload=function (){
+           if (this.status === 200) {
+               var blob = new Blob([this.response], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+               var fileName = 'file.xlsx';
+               if (window.navigator.msSaveOrOpenBlob) {
+                   window.navigator.msSaveBlob(blob, fileName);
+               } else {
+                   var url = window.URL.createObjectURL(blob);
+                   var a = document.createElement('a');
+                   a.href = url;
+                   a.download = fileName;
+                   document.body.appendChild(a);
+                   a.click();
+                   setTimeout(function() {
+                       document.body.removeChild(a);
+                       window.URL.revokeObjectURL(url);
+                   }, 0);
+               }
+           }
+       };
+       xhr.send();
+    });
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'admin/upload/file');
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                Swal.fire({
+                    position: 'top-end',
+                    icon: 'success',
+                    title: xhr.responseText,
+                    showConfirmButton: false,
+                    timer: 1500
+                })
+            } else {
+                Swal.fire({
+                    position: 'top-end',
+                    icon: 'error',
+                    title: xhr.responseText,
+                    showConfirmButton: false,
+                    timer: 1500
+                })
+            }
+        };
+        xhr.send(formData);
+    });
+</script>
+</html>
